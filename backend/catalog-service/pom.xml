@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.12</version>
+        <version>3.5.14</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.group1</groupId>
@@ -30,6 +30,8 @@
         <java.version>21</java.version>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
         <dockerImageName>karthi6559/bookstoreapp-${project.artifactId}</dockerImageName>
+        <!-- Explicitly pin to override the Spring Boot BOM version — fixes CVE-2026-42198 -->
+        <postgresql.version>42.7.11</postgresql.version>
     </properties>
     <dependencies>
         <dependency>

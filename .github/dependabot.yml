@@ -1,0 +1,42 @@
+version: 2
+updates:
+  # ── GitHub Actions ────────────────────────────────────────────────────────
+  # Keeps action versions (checkout@v4, setup-java@v4, etc.) up to date
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    labels: [dependencies, github-actions]
+
+  # ── Frontend (npm) ────────────────────────────────────────────────────────
+  # Raises PRs when npm packages have new versions or known CVEs
+  - package-ecosystem: npm
+    directory: /front-end
+    schedule:
+      interval: weekly
+    labels: [dependencies, frontend]
+    open-pull-requests-limit: 10
+
+  # ── Backend: api-gateway (Maven) ──────────────────────────────────────────
+  - package-ecosystem: maven
+    directory: /backend/api-gateway
+    schedule:
+      interval: weekly
+    labels: [dependencies, backend, api-gateway]
+    open-pull-requests-limit: 10
+
+  # ── Backend: catalog-service (Maven) ──────────────────────────────────────
+  - package-ecosystem: maven
+    directory: /backend/catalog-service
+    schedule:
+      interval: weekly
+    labels: [dependencies, backend, catalog-service]
+    open-pull-requests-limit: 10
+
+  # ── Backend: cart-service (Maven) ─────────────────────────────────────────
+  - package-ecosystem: maven
+    directory: /backend/cart-service
+    schedule:
+      interval: weekly
+    labels: [dependencies, backend, cart-service]
+    open-pull-requests-limit: 10
