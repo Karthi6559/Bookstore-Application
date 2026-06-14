@@ -53,7 +53,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.31.0
         with:
           scan-type: fs
           scan-ref: ./backend/catalog-service  # Scans pom.xml for dependency CVEs
@@ -103,7 +103,7 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Trivy image scan
         # Scan the pushed image for OS-level CVEs (libc, Alpine packages, etc.)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.31.0
         with:
           image-ref: ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
           format: sarif
