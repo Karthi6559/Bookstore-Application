@@ -98,7 +98,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}  # Set in repo → Settings → Secrets
           password: ${{ secrets.DOCKERHUB_TOKEN }}     # Docker Hub access token (not password)
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ./front-end              # Uses front-end/Dockerfile (multi-stage Node→Nginx)
           push: true
