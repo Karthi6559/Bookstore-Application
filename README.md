@@ -544,19 +544,6 @@ Individual service docs (accessible locally):
 
 ---
 
-## Team
-
-| Name | Role | Contribution |
-|---|---|---|
-| Paritosh Pundlik Pal | Backend, Frontend, DevOps, Reporting | 20% |
-| Karthick Keeranagere Krishnaiah | Infrastructure, Observability, Reporting | 19% |
-| Yazhini Vasudevan | Frontend, Testing, Reporting | 16% |
-| Chhagan Gavit | DevOps, Reporting | 15% |
-| Chaithanya Virupaksha | Frontend, Reporting | 15% |
-| Nishika Gharde | DevOps, Reporting | 15% |
-
----
-
 ## Repository
 
 [https://github.com/paritosh4495/CSC8113_CloudComputing_Bookstore](https://github.com/paritosh4495/CSC8113_CloudComputing_Bookstore)
