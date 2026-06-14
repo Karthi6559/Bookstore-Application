@@ -2,18 +2,17 @@ name: Cart Service CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - backend/cart-service/**
+    branches: [main]
+    paths: [backend/cart-service/**]
   pull_request:
-    branches:
-      - main
-    paths:
-      - backend/cart-service/**
+    branches: [main]
+    paths: [backend/cart-service/**]
+
+env:
+  DOCKER_IMAGE: karthi6559/csc8113bookstore-cart-service
 
 jobs:
-
+  # ─── Stage 1: Build & Test ────────────────────────────────────────────────
   ci:
     name: Build & Test
     runs-on: ubuntu-latest
@@ -21,65 +20,124 @@ jobs:
       run:
         working-directory: ./backend/cart-service
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4           # Fixed: v5 does not exist
       - name: Setup Java 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4         # Fixed: v5 does not exist
         with:
           java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-      - name: Build with Maven
+          distribution: temurin
+          cache: maven
+      - name: Build and test
         run: |
           chmod +x ../mvnw
           ../mvnw -ntp verify
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cart-service-jar
+          path: backend/cart-service/target/*.jar
+          retention-days: 1
 
+  # ─── Stage 2: Security Scan ───────────────────────────────────────────────
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: ci
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: ./backend/cart-service
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: '1'                   # Fail the job when vulnerabilities are found
+      - name: Upload scan results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+
+  # ─── Stage 3: Docker Build & Push ─────────────────────────────────────────
   docker:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
-    needs: ci
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    defaults:
-      run:
-        working-directory: ./backend/cart-service
-    env:
-      DOCKER_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/csc8113bookstore-cart-service
+    needs: security-scan
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      security-events: write
     steps:
-      - uses: actions/checkout@v5
-      - name: Setup Java 21
-        uses: actions/setup-java@v5
+      - uses: actions/checkout@v4
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
+          name: cart-service-jar
+          path: backend/cart-service/target/
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - name: Login to Docker Hub
-        uses: docker/login-action@v4
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and Push Docker Image
-        run: |
-          COMMIT_HASH=${GITHUB_SHA:0:7}
-          ../mvnw spring-boot:build-image -DskipTests -DdockerImageName=${{ env.DOCKER_IMAGE_NAME }}:$COMMIT_HASH
-          docker push ${{ env.DOCKER_IMAGE_NAME }}:$COMMIT_HASH
-          docker tag ${{ env.DOCKER_IMAGE_NAME }}:$COMMIT_HASH ${{ env.DOCKER_IMAGE_NAME }}:latest
-          docker push ${{ env.DOCKER_IMAGE_NAME }}:latest
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend/cart-service
+          push: true
+          tags: |
+            ${{ env.DOCKER_IMAGE }}:latest
+            ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+          format: sarif
+          output: trivy-image-results.sarif
+          severity: CRITICAL,HIGH
+        continue-on-error: true
+      - name: Upload image scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-image-results.sarif
 
-  deploy:
-    name: Deploy to AKS
+  # ─── Stage 4: Deploy to LocalStack EKS ────────────────────────────────────
+  deploy-localstack:
+    name: Deploy to LocalStack EKS
     runs-on: ubuntu-latest
     needs: docker
-    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - name: Login to Azure
-        uses: azure/login@v2
+      - uses: actions/checkout@v4
+      - name: Start LocalStack
+        uses: localstack/setup-localstack@v0.2.3
         with:
-          creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
-      - name: Set AKS context
-        uses: azure/aks-set-context@v4
-        with:
-          resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
-          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
-      - name: Rollout restart
+          image-tag: latest
+          install-awslocal: 'true'
+        env:
+          LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Create EKS cluster
         run: |
-          kubectl rollout restart deployment/cart-service
-          kubectl rollout status deployment/cart-service
+          awslocal eks create-cluster \
+            --name bookstore \
+            --kubernetes-version "1.29" \
+            --role-arn arn:aws:iam::000000000000:role/eks-role \
+            --resources-vpc-config subnetIds=subnet-12345,securityGroupIds=sg-12345 \
+            --region us-east-1 || true
+      - name: Configure kubectl
+        run: awslocal eks update-kubeconfig --name bookstore --region us-east-1
+      - name: Deploy cart-service
+        run: |
+          kubectl apply -f deployment/k8s/cart-service.yml
+          kubectl set image deployment/cart-service \
+            cart-service=${{ env.DOCKER_IMAGE }}:${{ github.sha }}
+          kubectl rollout status deployment/cart-service --timeout=180s

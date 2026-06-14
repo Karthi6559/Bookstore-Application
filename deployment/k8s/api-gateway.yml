@@ -27,7 +27,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: paritosh4495/csc8113bookstore-api-gateway:latest
+          image: karthi6559/csc8113bookstore-api-gateway:latest
           imagePullPolicy: Always
           env:
             - name: SPRING_PROFILES_ACTIVE

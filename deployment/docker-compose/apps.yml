@@ -3,7 +3,7 @@ name: "csc8113-bookstore-backend"
 
 services:
   catalog-service:
-    image: paritosh4495/csc8113bookstore-catalog-service
+    image: karthi6559/csc8113bookstore-catalog-service
     container_name: catalog-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -27,7 +27,7 @@ services:
 
 
   cart-service:
-    image: paritosh4495/csc8113bookstore-cart-service
+    image: karthi6559/csc8113bookstore-cart-service
     container_name: cart-service
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -52,7 +52,7 @@ services:
 
 
   api-gateway:
-    image: paritosh4495/csc8113bookstore-api-gateway
+    image: karthi6559/csc8113bookstore-api-gateway
     container_name: api-gateway
     environment:
       - SPRING_PROFILES_ACTIVE=docker
@@ -80,7 +80,7 @@ services:
 
 
   frontend:
-    image: paritosh4495/csc8113bookstore-frontend
+    image: karthi6559/csc8113bookstore-frontend
     container_name: frontend
     ports:
       - "5173:80"

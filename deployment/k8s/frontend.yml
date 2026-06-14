@@ -42,7 +42,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: paritosh4495/csc8113bookstore-frontend:latest
+          image: karthi6559/csc8113bookstore-frontend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80

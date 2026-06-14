@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: catalog-service
-          image: paritosh4495/csc8113bookstore-catalog-service:latest
+          image: karthi6559/csc8113bookstore-catalog-service:latest
           imagePullPolicy: Always
           env:
             - name: SPRING_PROFILES_ACTIVE
