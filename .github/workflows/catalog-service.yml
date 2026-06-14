@@ -52,15 +52,26 @@ jobs:
       security-events: write               # Required to push SARIF to GitHub Security tab
     steps:
       - uses: actions/checkout@v4
-      - name: Trivy filesystem scan
+      - name: Trivy scan (console output)
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: ./backend/catalog-service  # Scans pom.xml for dependency CVEs
+          format: table               # human-readable table in the logs
+          severity: CRITICAL,HIGH
+          exit-code: '1'             # still blocks the pipeline
+
+      - name: Trivy scan (SARIF for GitHub Security tab)
+        if: always()                  # run even if previous step failed
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: ./backend/catalog-service
           format: sarif
           output: trivy-results.sarif
           severity: CRITICAL,HIGH
-          exit-code: '1'                   # Fail the job when vulnerabilities are found
+          exit-code: '0'             # don't double-fail here, first step handles it
+
       - name: Upload scan results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()                       # Upload even if Trivy exited with code 1
