@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4           # Fixed: actions/checkout@v5 does not exist
       - name: Setup Java 21
-        uses: actions/setup-java@v4         # Fixed: actions/setup-java@v5 does not exist
+        uses: actions/setup-java@v5         # Fixed: actions/setup-java@v5 does not exist
         with:
           java-version: '21'
           distribution: temurin
