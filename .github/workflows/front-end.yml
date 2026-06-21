@@ -141,7 +141,7 @@ jobs:
         env:
           LOCALSTACK_API_KEY: ${{ secrets.LOCALSTACK_API_KEY }}
       - name: Install kubectl
-        uses: azure/setup-kubectl@v4
+        uses: azure/setup-kubectl@v5
       - name: Create EKS cluster
         # || true prevents failure if the cluster already exists from a previous run
         run: |
