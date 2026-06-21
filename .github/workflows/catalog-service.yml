@@ -35,7 +35,7 @@ jobs:
           ../mvnw -ntp verify               # verify runs: compile → test → integration-test
       - name: Upload JAR artifact
         # Upload the compiled JAR so the docker job can use it without rebuilding
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: catalog-service-jar
           path: backend/catalog-service/target/*.jar
