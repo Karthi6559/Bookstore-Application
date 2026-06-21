@@ -138,7 +138,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Start LocalStack
-        uses: localstack/setup-localstack@v0.2.3
+        uses: localstack/setup-localstack@v0.3.2
         with:
           image-tag: latest
           install-awslocal: 'true'
